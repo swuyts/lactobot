@@ -49,12 +49,13 @@ accessTokenSecret = # deleted
 
 api = Twython(apiKey,apiSecret,accessToken,accessTokenSecret)
 
-# Set op photo and tweet
+# Set up photo and tweet
 photo = open("image.png","rb")
 tweetStr = "There are currently " + newlen_str + " Lactobacillus assemblies available. That's " + diflen_str + " more than yesterday. #lactobot"
 
-# Update status
-api.update_status_with_media(media=photo,status=tweetStr)
-
-print "Tweeted: " + tweetStr
-
+# Update status only when diflen differs from 0
+if diflen != 0:
+	api.update_status_with_media(media=photo,status=tweetStr)
+	print "Tweeted: " + tweetStr
+else:
+	print "I did not tweet today, because nothing interesting happened"
