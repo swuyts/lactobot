@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import time
+import datetime
 
 import matplotlib as mpl
 mpl.use("Agg")
@@ -15,18 +15,19 @@ def file_len(fname):
     with open(fname) as f:
         return len(f.readlines())
 
-# Count the amount of lines in the old and new lactos files
-num_lactos_old = file_len("/home/pi/lactobot/ncbi_files/lactos_old.txt")
+
+# Count the number of lines in new lactos file
 num_lactos_new = file_len("/home/pi/lactobot/ncbi_files/lactos.txt")
-num_lactos_dif = num_lactos_new - num_lactos_old
+today = np.datetime64(datetime.datetime.now(), "D")
 
-# Add date and count to track file
-date = time.strftime("%Y%m%d")
-with open("track_count.txt", "a") as myfile:
-    myfile.write("{}\t{}\n".format(date, num_lactos_new))
+# Update the stored number of assemblies
+track_count = pd.Series.from_csv("track_count.txt", sep="\t", header=0, infer_datetime_format=True)
+track_count.loc[today] = num_lactos_new   # don't store duplicate entries
+track_count.to_csv("track_count.txt", sep="\t", header=True, index_label="Date")
 
-# Read in track_count file for plot
-track_count = pd.read_table("/home/pi/lactobot/track_count.txt", sep="\t")
+# Check whether we found new assemblies compared to the previous recorded value
+num_lactos_dif = num_lactos_new - int(track_count.shift(1)[today])
+
 
 # Plot using matplotlib
 ypos = np.arange(len(track_count["Date"]))
