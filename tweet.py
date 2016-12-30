@@ -2,7 +2,7 @@
 import time
 
 import matplotlib as mpl
-mpl.use('Agg')
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -33,11 +33,11 @@ with open("track_count.txt","a") as myfile:
 track_count = pd.read_table("/home/pi/lactobot/track_count.txt",sep="\t")
 
 # Plot using matplotlib
-ypos = np.arange(len(track_count['Date']))
-plt.barh(ypos,track_count['Count'], align='center', alpha=0.4)
-plt.yticks(ypos, track_count['Date'])
+ypos = np.arange(len(track_count["Date"]))
+plt.barh(ypos,track_count["Count"], align="center", alpha=0.4)
+plt.yticks(ypos, track_count["Date"])
 plt.title("Amount of Lactobacillus assemblies")
-plt.savefig('image.png')
+plt.savefig("image.png")
 
 # Set up twitter credentials
 
