@@ -13,9 +13,7 @@ from twython import Twython
 
 def file_len(fname):
     with open(fname) as f:
-        for i, l in enumerate(f):
-            pass
-    return i + 1
+        return len(f.readlines())
 
 # Count the amount of lines in the old and new lactos files
 num_lactos_old = file_len("/home/pi/lactobot/ncbi_files/lactos_old.txt")
