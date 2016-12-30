@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-import sys
 import time
-import matplotlib
-matplotlib.use('Agg')
+
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
-import pandas
 import numpy as np
-import pylab 
+import pandas as pd
 from twython import Twython
 
 
@@ -31,14 +30,14 @@ with open("track_count.txt","a") as myfile:
 	myfile.write(date + "\t" + newlen_str + "\n")
 
 # Read in track_count file for plot
-track_count = pandas.read_table("/home/pi/lactobot/track_count.txt",sep="\t")
+track_count = pd.read_table("/home/pi/lactobot/track_count.txt",sep="\t")
 
 # Plot using matplotlib
 ypos = np.arange(len(track_count['Date']))
 plt.barh(ypos,track_count['Count'], align='center', alpha=0.4)
 plt.yticks(ypos, track_count['Date'])
 plt.title("Amount of Lactobacillus assemblies")
-pylab.savefig('image.png')
+plt.savefig('image.png')
 
 # Set up twitter credentials
 
