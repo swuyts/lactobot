@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import datetime
+import io
 
 import matplotlib as mpl
 mpl.use("Agg")
@@ -44,25 +45,27 @@ plt.xlabel("Date")
 plt.ylabel("Number of Lactobacillus assemblies")
 plt.title("#lactobot", size="x-large", weight="bold")
 
-plt.savefig("image.png")
+# Store the plot in a bytes buffer
+img = io.BytesIO()
+plt.savefig(img, format="png")
+img.seek(0)
 plt.close()
 
 # Set up twitter credentials
-
 apiKey = # deleted for security reasons
 apiSecret = # deleted
 accessToken = # deleted
 accessTokenSecret = # deleted
 
-api = Twython(apiKey, apiSecret, accessToken, accessTokenSecret)
+twitter_api = Twython(apiKey, apiSecret, accessToken, accessTokenSecret)
 
-# Set up photo and tweet
-photo = open("image.png", "rb")
-tweetStr = "There are currently {} Lactobacillus assemblies available. That's {} more than yesterday. #lactobot".format(num_lactos_new, num_lactos_dif)
-
-# Update status only when diflen differs from 0
-if num_lactos_dif != 0:
-    api.update_status_with_media(media=photo, status=tweetStr)
-    print("Tweeted: {}".format(tweetStr))
+# Update status only when new assemblies have been found
+if num_lactos_dif > 0:
+    tweet = "There are currently {} Lactobacillus assemblies available. That's {} more than yesterday. #lactobot".format(
+        num_lactos_new, num_lactos_dif)
+    twitter_api.update_status_with_media(status=tweet, media=img)
+    print("Tweeted: {}".format(tweet))
 else:
     print("I did not tweet today, because nothing interesting happened")
+
+img.close()
