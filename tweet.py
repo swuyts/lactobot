@@ -8,7 +8,11 @@ mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from twython import Twython
+
+
+sns.set_style("whitegrid")
 
 
 def file_len(fname):
@@ -28,13 +32,20 @@ track_count.to_csv("track_count.txt", sep="\t", header=True, index_label="Date")
 # Check whether we found new assemblies compared to the previous recorded value
 num_lactos_dif = num_lactos_new - int(track_count.shift(1)[today])
 
+# Plot changes in the number of assemblies
+plt.figure()
 
-# Plot using matplotlib
-ypos = np.arange(len(track_count["Date"]))
-plt.barh(ypos, track_count["Count"], align="center", alpha=0.4)
-plt.yticks(ypos, track_count["Date"])
-plt.title("Amount of Lactobacillus assemblies")
+plt.plot(track_count.index, track_count, "-o")
+
+plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useOffset=False))
+plt.gca().margins(0.05, 0.05)
+
+plt.xlabel("Date")
+plt.ylabel("Number of Lactobacillus assemblies")
+plt.title("#lactobot", size="x-large", weight="bold")
+
 plt.savefig("image.png")
+plt.close()
 
 # Set up twitter credentials
 
