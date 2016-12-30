@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import time
 
 import matplotlib as mpl
@@ -55,6 +57,6 @@ tweetStr = "There are currently " + newlen_str + " Lactobacillus assemblies avai
 # Update status only when diflen differs from 0
 if diflen != 0:
     api.update_status_with_media(media=photo,status=tweetStr)
-    print "Tweeted: " + tweetStr
+    print("Tweeted: " + tweetStr)
 else:
-    print "I did not tweet today, because nothing interesting happened"
+    print("I did not tweet today, because nothing interesting happened")
