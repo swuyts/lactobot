@@ -62,7 +62,8 @@ if num_lactos_dif > 0:
     config.read("config.ini")
     twitter_api = Twython(config["Twitter"]["api_key"], config["Twitter"]["api_secret"],
                           config["Twitter"]["access_token"], config["Twitter"]["access_token_secret"])
-    twitter_api.update_status_with_media(status=tweet, media=img)
+    media = twitter_api.upload_media(media=img)
+    twitter_api.update_status(status=tweet, media_ids=[media['media_id']])
 
     print("Tweeted: {}".format(tweet))
 else:
