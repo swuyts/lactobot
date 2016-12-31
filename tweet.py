@@ -22,7 +22,7 @@ def file_len(fname):
 
 
 # Count the number of lines in new lactos file
-num_lactos_new = file_len("/home/pi/lactobot/ncbi_files/lactos.txt")
+num_lactos_new = file_len("ncbi_files/lactos.txt")
 today = np.datetime64(datetime.datetime.now(), "D")
 
 # Update the stored number of assemblies
