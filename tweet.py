@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+import configparser
 import datetime
 import io
 
@@ -51,19 +52,18 @@ plt.savefig(img, format="png")
 img.seek(0)
 plt.close()
 
-# Set up twitter credentials
-apiKey = # deleted for security reasons
-apiSecret = # deleted
-accessToken = # deleted
-accessTokenSecret = # deleted
-
-twitter_api = Twython(apiKey, apiSecret, accessToken, accessTokenSecret)
-
 # Update status only when new assemblies have been found
 if num_lactos_dif > 0:
     tweet = "There are currently {} Lactobacillus assemblies available. That's {} more than yesterday. #lactobot".format(
         num_lactos_new, num_lactos_dif)
+
+    # Set up Twitter credentials and tweet the update
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    twitter_api = Twython(config["Twitter"]["api_key"], config["Twitter"]["api_secret"],
+                          config["Twitter"]["access_token"], config["Twitter"]["access_token_secret"])
     twitter_api.update_status_with_media(status=tweet, media=img)
+
     print("Tweeted: {}".format(tweet))
 else:
     print("I did not tweet today, because nothing interesting happened")
