@@ -1,61 +1,72 @@
 #!/usr/bin/env python
-import sys
-import time
-import matplotlib
-matplotlib.use('Agg')
+from __future__ import print_function
+
+import configparser
+import datetime
+import io
+
+import matplotlib as mpl
+mpl.use("Agg")
 import matplotlib.pyplot as plt
-import pandas
 import numpy as np
-import pylab 
+import pandas as pd
+import seaborn as sns
 from twython import Twython
+
+
+sns.set_style("whitegrid")
 
 
 def file_len(fname):
     with open(fname) as f:
-        for i, l in enumerate(f):
-            pass
-    return i + 1
+        return len(f.readlines())
 
-# Count the amount of lines in the old and new lactos files
-oldlen = file_len("/home/pi/lactobot/ncbi_files/lactos_old.txt")
-newlen = file_len("/home/pi/lactobot/ncbi_files/lactos.txt")
-diflen = newlen - oldlen
 
-# Convert integers to strings
-newlen_str = str(newlen)
-diflen_str = str(diflen)
+# Count the number of lines in new lactos file
+num_lactos_new = file_len("ncbi_files/lactos.txt")
+today = np.datetime64(datetime.datetime.now(), "D")
 
-# Add date and count to track file
-date = time.strftime("%Y%m%d")
-with open("track_count.txt","a") as myfile:
-	myfile.write(date + "\t" + newlen_str + "\n")
+# Update the stored number of assemblies
+track_count = pd.Series.from_csv("track_count.txt", sep="\t", header=0, infer_datetime_format=True)
+track_count.loc[today] = num_lactos_new   # don't store duplicate entries
+track_count.to_csv("track_count.txt", sep="\t", header=True, index_label="Date")
 
-# Read in track_count file for plot
-track_count = pandas.read_table("/home/pi/lactobot/track_count.txt",sep="\t")
+# Check whether we found new assemblies compared to the previous recorded value
+num_lactos_dif = num_lactos_new - int(track_count.shift(1)[today])
 
-# Plot using matplotlib
-ypos = np.arange(len(track_count['Date']))
-plt.barh(ypos,track_count['Count'], align='center', alpha=0.4)
-plt.yticks(ypos, track_count['Date'])
-plt.title("Amount of Lactobacillus assemblies")
-pylab.savefig('image.png')
+# Plot changes in the number of assemblies
+plt.figure()
 
-# Set up twitter credentials
+plt.plot(track_count.index, track_count, "-o")
 
-apiKey = # deleted for security reasons
-apiSecret = # deleted
-accessToken = # deleted
-accessTokenSecret = # deleted
+plt.gca().yaxis.set_major_formatter(mpl.ticker.ScalarFormatter(useOffset=False))
+plt.gca().margins(0.05, 0.05)
 
-api = Twython(apiKey,apiSecret,accessToken,accessTokenSecret)
+plt.xlabel("Date")
+plt.ylabel("Number of Lactobacillus assemblies")
+plt.title("#lactobot", size="x-large", weight="bold")
 
-# Set up photo and tweet
-photo = open("image.png","rb")
-tweetStr = "There are currently " + newlen_str + " Lactobacillus assemblies available. That's " + diflen_str + " more than yesterday. #lactobot"
+# Store the plot in a bytes buffer
+img = io.BytesIO()
+plt.savefig(img, format="png")
+img.seek(0)
+plt.close()
 
-# Update status only when diflen differs from 0
-if diflen != 0:
-	api.update_status_with_media(media=photo,status=tweetStr)
-	print "Tweeted: " + tweetStr
+# Update status only when new assemblies have been found
+if num_lactos_dif > 0:
+    tweet = "There are currently {} Lactobacillus assemblies available. That's {} more than yesterday. #lactobot".format(
+        num_lactos_new, num_lactos_dif)
+
+    # Set up Twitter credentials and tweet the update
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    twitter_api = Twython(config["Twitter"]["api_key"], config["Twitter"]["api_secret"],
+                          config["Twitter"]["access_token"], config["Twitter"]["access_token_secret"])
+    media = twitter_api.upload_media(media=img)
+    twitter_api.update_status(status=tweet, media_ids=[media['media_id']])
+
+    print("Tweeted: {}".format(tweet))
 else:
-	print "I did not tweet today, because nothing interesting happened"
+    print("I did not tweet today, because nothing interesting happened")
+
+img.close()
